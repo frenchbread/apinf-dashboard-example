@@ -1,0 +1,7 @@
+#line-chart, #focus-chart, #row-chart, #line2-chart {
+  width:100%
+}
+
+.dc-chart g.row text{
+  fill: #333;
+}

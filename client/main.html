@@ -1,0 +1,32 @@
+<head>
+  <title>simple</title>
+</head>
+
+<body>
+  {{> dashboard }}
+</body>
+
+
+<template name="dashboard">
+  <div class="container">
+    <h1>Apinf dashboard</h1>
+    <div class="row">
+      <div class="col-md-8">
+        <div>
+          <div id="line-chart"></div>
+        </div>
+        <div>
+          <div id="focus-chart"></div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div>
+          <div id="row-chart"></div>
+        </div>
+        <div>
+          <div id="line2-chart"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
