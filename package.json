@@ -1,0 +1,33 @@
+{
+  "name": "apinf-dashboard",
+  "private": true,
+  "scripts": {
+    "start": "meteor run"
+  },
+  "dependencies": {
+    "d3": "^3.5.17",
+    "dc": "^2.0.0-beta.30",
+    "elasticsearch": "^11.0.1",
+    "meteor-node-stubs": "~0.2.0",
+    "moment": "^2.13.0"
+  },
+  "description": "Example dashboard layout for apinf.",
+  "version": "1.0.0",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frenchbread/apinf-dashboard-example.git"
+  },
+  "keywords": [
+    "apinf",
+    "dashboard",
+    "charts",
+    "analytics"
+  ],
+  "author": "Damir Mustafin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/frenchbread/apinf-dashboard-example/issues"
+  },
+  "homepage": "https://github.com/frenchbread/apinf-dashboard-example#readme"
+}
