@@ -59,16 +59,16 @@ Template.dashboard.onCreated(function () {
 
     const dateFormat = d3.time.format("%Y-%m-%d-%H");
 
-    _.forEach(items, function (d) {
+    const timeStampDimension = index.dimension((d) => {
 
       let timeStamp = moment(d.fields.request_at[0]);
 
       timeStamp = timeStamp.format('YYYY-MM-DD-HH');
 
       d.fields.ymd = dateFormat.parse(timeStamp);
-    });
 
-    const timeStampDimension = index.dimension((d) => { return d.fields.ymd; });
+      return d.fields.ymd;
+    });
     const timeStampGroup = timeStampDimension.group();
 
     const statusCodeDimension = index.dimension((d) => {
