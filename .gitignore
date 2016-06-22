@@ -1,0 +1,5 @@
+node_modules/
+.meteor/local
+.meteor/meteorite
+.meteor/.id
+config.js
