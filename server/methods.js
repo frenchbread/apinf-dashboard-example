@@ -1,8 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 
-import _ from 'lodash';
-import moment from 'moment';
-
 import { esClient } from '/server/elasticsearch';
 
 Meteor.methods({
