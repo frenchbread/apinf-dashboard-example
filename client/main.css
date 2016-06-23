@@ -1,5 +1,24 @@
 #line-chart, #focus-chart, #row-chart, #line2-chart {
-  width:100%
+  width:100%;
+  border: 1px solid #eee;
+  margin: 5px 0;
+}
+
+#line-chart {
+  height: 350px;
+}
+
+#focus-chart {
+  height: 100px;
+}
+
+#row-chart, #line2-chart {
+  height: 215px;
+}
+
+.loader {
+  background: url('img/loader.gif') center center no-repeat;
+  background-size: 50px;
 }
 
 .dc-chart g.row text{
