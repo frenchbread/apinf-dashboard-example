@@ -32,12 +32,12 @@ Template.dashboard.onCreated(function () {
       'request_at',
       'response_status',
       'response_time',
-      // 'request_ip_country',
-      // 'request_ip',
-      // 'request_path',
+      'request_ip_country',
+      'request_ip',
+      'request_path',
       // 'request_ip_location.lon',
       // 'request_ip_location.lat',
-      'api_key'
+      // 'api_key'
     ]
   }
 
@@ -183,7 +183,69 @@ Template.dashboard.onCreated(function () {
       .xAxis().ticks(4)
       // .elasticY(true);
 
+    instance.initDatatable(timeStampDimension);
+
     dc.renderAll();
+  }
+
+  instance.initDatatable = function (timeStampDimension) {
+
+    const tableData = instance.getTableData(timeStampDimension);
+
+    const datatableBody = $('.datatable tbody');
+
+    datatableBody.empty();
+
+    _.forEach(tableData, (tableItem) => {
+       datatableBody.append(`
+         <tr>
+           <td scope="row">${tableItem.time}</td>
+           <td>${tableItem.country}</td>
+           <td>${tableItem.requestPath}</td>
+           <td>${tableItem.requestIp}</td>
+           <td>${tableItem.responseTime}</td>
+         </tr>
+         `);
+     });
+
+     $('.datatable').DataTable({
+        pagingType: 'simple'
+      });
+  }
+
+  instance.getTableData = function (timeStampDimension) {
+
+    let tableDataSet = [];
+
+    _.forEach(timeStampDimension.top(Infinity), (e) => {
+
+      let time,
+          country,
+          requestPath,
+          requestIp,
+          responseTime;
+
+      // Error handling for empty fields
+      try { time = moment(e.fields.request_at[0]).format("D/MM/YYYY HH:mm:ss"); }
+      catch (e) { time = ''; }
+
+      try { country = e.fields.request_ip_country[0] }
+      catch (e) { country = ''; }
+
+      try { requestPath = e.fields.request_path[0]; }
+      catch (e) { requestPath = ''; }
+
+      try { requestIp = e.fields.request_ip[0]; }
+      catch (e) { requestIp = ''; }
+
+      try { responseTime = e.fields.response_time[0]; }
+      catch (e) { responseTime = ''; }
+
+      tableDataSet.push({ time, country, requestPath, requestIp, responseTime });
+
+    });
+
+    return tableDataSet;
   }
 });
 
