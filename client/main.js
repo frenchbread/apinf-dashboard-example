@@ -97,7 +97,7 @@ Template.dashboard.onCreated(function () {
     });
     const statusCodeGroup = statusCodeDimension.group();
 
-    const responseTimeDimension = index.dimension((d) => { return d.fields.response_time[0]; });
+    const responseTimeDimension = index.dimension((d) => { return d.fields.response_time[0]/1000; });
     const responseTimeGroup = responseTimeDimension.group();
 
     const all = index.groupAll();
@@ -144,7 +144,7 @@ Template.dashboard.onCreated(function () {
       .height(350)
       .renderArea(true)
       .transitionDuration(500)
-      .margins({top: 30, right: 50, bottom: 25, left: 40})
+      .margins({top: 5, right: 10, bottom: 25, left: 40})
       .x(timeScaleForLine)
       .dimension(timeStampDimension)
       .group(timeStampGroup)
@@ -160,21 +160,21 @@ Template.dashboard.onCreated(function () {
       .group(timeStampGroup)
       .centerBar(true)
       .gap(1)
-      .margins({top: 30, right: 50, bottom: 25, left: 40})
+      .margins({top: 5, right: 10, bottom: 25, left: 40})
       .x(timeScaleForFocus)
       .alwaysUseRounding(true)
       .elasticY(true)
       .yAxis().ticks(0);
 
     row
-      .height(230)
+      .height(215)
       .dimension(statusCodeDimension)
       .group(statusCodeGroup)
       .elasticX(true)
       .xAxis().ticks(5);
 
     line2
-      .height(230)
+      .height(215)
       .transitionDuration(500)
       .x(timeScaleForLine)
       .dimension(responseTimeDimension)
@@ -191,6 +191,10 @@ Template.dashboard.onRendered(function () {
 
   const instance = this;
 
+  const chartElemets = $('#line-chart, #focus-chart, #row-chart, #line2-chart');
+
+  chartElemets.addClass('loader');
+
   instance.autorun(() => {
 
     const chartData = instance.esData.get();
@@ -202,6 +206,8 @@ Template.dashboard.onRendered(function () {
       const parsedData = instance.parseChartData(chartData);
 
       instance.renderCharts(parsedData);
+
+      chartElemets.removeClass('loader');
 
     }
   });
