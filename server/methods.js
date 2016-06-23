@@ -1,17 +1,12 @@
 import { Meteor } from 'meteor/meteor';
 
-import ElasticSearch from 'elasticsearch';
 import _ from 'lodash';
 import moment from 'moment';
 
-import config from '/config';
+import { esClient } from '/server/elasticsearch';
 
 Meteor.methods({
   getElasticSearchData (params) {
-
-    const host = config.host;
-
-    const esClient = new ElasticSearch.Client({ host });
 
     let opts = {
       index: params.index,
