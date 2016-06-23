@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "d3": "^3.5.17",
+    "datatables": "^1.10.12",
     "dc": "^2.0.0-beta.30",
     "elasticsearch": "^11.0.1",
     "meteor-node-stubs": "~0.2.0",
