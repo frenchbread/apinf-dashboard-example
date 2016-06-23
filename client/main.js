@@ -208,7 +208,7 @@ Template.dashboard.onCreated(function () {
          `);
      });
 
-     $('.datatable').DataTable({
+     $('.datatable').dataTable({
         pagingType: 'simple'
       });
   }
