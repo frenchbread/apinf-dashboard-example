@@ -37,7 +37,7 @@ Template.dashboard.onCreated(function () {
       // 'request_path',
       // 'request_ip_location.lon',
       // 'request_ip_location.lat',
-      // 'api_key'
+      'api_key'
     ]
   }
 
@@ -115,12 +115,12 @@ Template.dashboard.onCreated(function () {
     return {
       timeStampDimension    : timeStampDimension,
       timeStampGroup        : timeStampGroup,
-      timeScaleForLine      : timeScaleForLine,
-      timeScaleForFocus     : timeScaleForFocus,
       statusCodeDimension   : statusCodeDimension,
       statusCodeGroup       : statusCodeGroup,
       responseTimeDimension : responseTimeDimension,
-      responseTimeGroup     : responseTimeGroup
+      responseTimeGroup     : responseTimeGroup,
+      timeScaleForLine      : timeScaleForLine,
+      timeScaleForFocus     : timeScaleForFocus,
     };
   }
 
@@ -128,12 +128,12 @@ Template.dashboard.onCreated(function () {
 
     const timeStampDimension    = parsedData.timeStampDimension;
     const timeStampGroup        = parsedData.timeStampGroup;
-    const timeScaleForLine      = parsedData.timeScaleForLine;
-    const timeScaleForFocus     = parsedData.timeScaleForFocus;
     const statusCodeDimension   = parsedData.statusCodeDimension;
     const statusCodeGroup       = parsedData.statusCodeGroup;
     const responseTimeDimension = parsedData.responseTimeDimension;
     const responseTimeGroup     = parsedData.responseTimeGroup;
+    const timeScaleForLine      = parsedData.timeScaleForLine;
+    const timeScaleForFocus     = parsedData.timeScaleForFocus;
 
     const line = dc.lineChart('#line-chart');
     const focus = dc.barChart('#focus-chart');
@@ -167,21 +167,21 @@ Template.dashboard.onCreated(function () {
       .yAxis().ticks(0);
 
     row
-      .height(170)
+      .height(230)
       .dimension(statusCodeDimension)
       .group(statusCodeGroup)
       .elasticX(true)
       .xAxis().ticks(5);
 
     line2
-      .height(170)
-      .renderArea(true)
+      .height(230)
       .transitionDuration(500)
       .x(timeScaleForLine)
       .dimension(responseTimeDimension)
       .group(responseTimeGroup)
-      .elasticY(true)
-      .xAxis().ticks(5);
+      .brushOn(false)
+      .xAxis().ticks(4)
+      // .elasticY(true);
 
     dc.renderAll();
   }
