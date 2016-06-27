@@ -23,7 +23,7 @@ Template.dashboard.onCreated(function () {
   const params = {
     index: 'api-umbrella-logs-v1-2016-06',
     type: 'log',
-    size: 100000,
+    size: 10000,
     query: {
       match_all: {}
     },
@@ -184,81 +184,63 @@ Template.dashboard.onCreated(function () {
 
     dc.renderAll();
 
-    initDatatable(timeStampDimension);
+    instance.initDatatable(timeStampDimension);
+  }
 
-    function initDatatable () {
+  instance.initDatatable = function (timeStampDimension) {
+    
+    const tableData = instance.getTableData(timeStampDimension);
 
-      console.log('initing')
+    const datatableBody = $('.dataTable tbody');
 
-      const tableData = getTableData(timeStampDimension);
+    datatableBody.empty();
 
-      console.log('got data')
-
-      const datatableBody = $('.dataTable tbody');
-
-      datatableBody.empty();
-      //
-      // _.forEach(tableData, (tableItem) => {
-      //    datatableBody.append(`
-      //      <tr>
-      //        <td scope="row">${tableItem.time}</td>
-      //        <td>${tableItem.country}</td>
-      //        <td>${tableItem.requestPath}</td>
-      //        <td>${tableItem.requestIp}</td>
-      //        <td>${tableItem.responseTime}</td>
-      //      </tr>
-      //      `);
-      //  });
-
-      console.log(tableData)
-
-       $('.dataTable').dataTable({
-          pagingType: 'simple',
-          data: tableData,
-          "columns": [
-              { "data": "country" },
-              { "data": "requestIp" },
-              { "data": "requestPath" },
-              { "data": "responseTime" },
-              { "data": "time" }
-          ]
-        });
-    }
-
-    function getTableData () {
-
-      let tableDataSet = [];
-
-      _.forEach(timeStampDimension.top(Infinity), (e) => {
-
-        let time,
-            country,
-            requestPath,
-            requestIp,
-            responseTime;
-
-        // Error handling for empty fields
-        try { time = moment(e.fields.request_at[0]).format("D/MM/YYYY HH:mm:ss"); }
-        catch (e) { time = ''; }
-
-        try { country = e.fields.request_ip_country[0] }
-        catch (e) { country = ''; }
-
-        try { requestPath = e.fields.request_path[0]; }
-        catch (e) { requestPath = ''; }
-
-        try { requestIp = e.fields.request_ip[0]; }
-        catch (e) { requestIp = ''; }
-
-        try { responseTime = e.fields.response_time[0]; }
-        catch (e) { responseTime = ''; }
-
-        tableDataSet.push({ time, country, requestPath, requestIp, responseTime });
-
+     $('.dataTable').dataTable({
+        pagingType: 'simple',
+        data: tableData,
+        "columns": [
+            { "data": "country" },
+            { "data": "requestIp" },
+            { "data": "requestPath" },
+            { "data": "responseTime" },
+            { "data": "time" }
+        ]
       });
+  }
 
-      return tableDataSet;
-    }
+  instance.getTableData = function (timeStampDimension) {
+
+    let tableDataSet = [];
+
+    _.forEach(timeStampDimension.top(Infinity), (e) => {
+
+      let time,
+          country,
+          requestPath,
+          requestIp,
+          responseTime;
+
+      // Error handling for empty fields
+      try { time = moment(e.fields.request_at[0]).format("D/MM/YYYY HH:mm:ss"); }
+      catch (e) { time = ''; }
+
+      try { country = e.fields.request_ip_country[0] }
+      catch (e) { country = ''; }
+
+      try { requestPath = e.fields.request_path[0]; }
+      catch (e) { requestPath = ''; }
+
+      try { requestIp = e.fields.request_ip[0]; }
+      catch (e) { requestIp = ''; }
+
+      try { responseTime = e.fields.response_time[0]; }
+      catch (e) { responseTime = ''; }
+
+      tableDataSet.push({ time, country, requestPath, requestIp, responseTime });
+
+    });
+
+    return tableDataSet;
   }
 
 });
