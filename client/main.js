@@ -17,8 +17,7 @@ Template.dashboard.onCreated(function () {
   instance.parsedData = new ReactiveVar();
 
   instance.timeStart = new Date().getTime();
-
-  console.log('------------');
+  
   console.log('Starting to fetch stuff..')
 
   const params = {
