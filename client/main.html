@@ -57,7 +57,25 @@
             </tr>
           </thead>
           <tbody>
-
+            {{ # each row in tableDataSet }}
+              <tr>
+                <td class="row">
+                  {{ row.time }}
+                </td>
+                <td>
+                  {{ row.country }}
+                </td>
+                <td>
+                  {{ row.requestPath }}
+                </td>
+                <td>
+                  {{ row.requestIp }}
+                </td>
+                <td>
+                  {{ row.responseTime }}
+                </td>
+              </tr>
+            {{ / each}}
           </tbody>
         </table>
       </div>
