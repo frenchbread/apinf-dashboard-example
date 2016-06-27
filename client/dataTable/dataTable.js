@@ -28,3 +28,18 @@ Template.dataTable.events({
     }
   }
 })
+
+Template.dataTable.helpers({
+  tableDataSet () {
+
+    const instance = Template.instance();
+
+    const rowCount = instance.rowCount.get();
+    const pageNumber = instance.pageNumber.get();
+
+    const arrStart = rowCount * pageNumber;
+    const arrEnd = arrStart + rowCount;
+
+    return instance.data.tableDataSet.slice(arrStart, arrEnd);
+  }
+})

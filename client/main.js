@@ -267,6 +267,6 @@ Template.dashboard.onRendered(function () {
 Template.dashboard.helpers({
   tableDataSet () {
     const instance = Template.instance();
-    return instance.tableDataSet.get().slice(0, 10);
+    return instance.tableDataSet.get();
   }
 })
