@@ -16,6 +16,8 @@ Template.dashboard.onCreated(function () {
   instance.esData = new ReactiveVar();
   instance.parsedData = new ReactiveVar();
 
+  instance.dataTableElement = {};
+
   instance.timeStart = new Date().getTime();
 
   console.log('Starting to fetch stuff..')
@@ -23,7 +25,7 @@ Template.dashboard.onCreated(function () {
   const params = {
     index: 'api-umbrella-logs-v1-2016-06',
     type: 'log',
-    size: 10000,
+    size: 100000,
     query: {
       match_all: {}
     },
@@ -153,6 +155,7 @@ Template.dashboard.onCreated(function () {
       .renderVerticalGridLines(true)
       .elasticY(true);
 
+
     focus
       .height(100)
       .dimension(timeStampDimension)
@@ -185,17 +188,25 @@ Template.dashboard.onCreated(function () {
     dc.renderAll();
 
     instance.initDatatable(timeStampDimension);
+
+    for (var i = 0; i < dc.chartRegistry.list().length; i++) {
+      var chartI = dc.chartRegistry.list()[i];
+      chartI.on("filtered", () => {
+
+        instance.refreshTable(timeStampDimension)
+      });
+    }
   }
 
   instance.initDatatable = function (timeStampDimension) {
-    
+
     const tableData = instance.getTableData(timeStampDimension);
 
     const datatableBody = $('.dataTable tbody');
 
     datatableBody.empty();
 
-     $('.dataTable').dataTable({
+     instance.dataTableElement = $('.dataTable').dataTable({
         pagingType: 'simple',
         data: tableData,
         "columns": [
@@ -243,6 +254,11 @@ Template.dashboard.onCreated(function () {
     return tableDataSet;
   }
 
+  instance.refreshTable = function (timeStampDimension) {
+
+    const data = instance.getTableData(timeStampDimension);
+    instance.dataTableElement.api().clear().rows.add(data).draw();
+  }
 });
 
 Template.dashboard.onRendered(function () {
