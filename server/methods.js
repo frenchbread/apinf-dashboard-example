@@ -26,5 +26,23 @@ Meteor.methods({
 
       return res;
     });
+  },
+  syncElasticSearchData () {
+
+    const params = {
+      index: 'api-umbrella-logs-v1-2016-06',
+      type: 'log',
+      size: 10,
+      query: {
+        match_all: {}
+      }
+    };
+
+    return esClient.search(params).then((res) => {
+
+      const items = res.hits.hits;
+
+      return items;
+    });
   }
 })
