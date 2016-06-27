@@ -27,7 +27,7 @@ Template.dashboard.onCreated(function () {
   const params = {
     index: 'api-umbrella-logs-v1-2016-06',
     type: 'log',
-    size: 100,
+    size: 1000,
     query: {
       match_all: {}
     },
@@ -188,8 +188,6 @@ Template.dashboard.onCreated(function () {
 
     dc.renderAll();
 
-    // instance.initDatatable(timeStampDimension);
-
     for (var i = 0; i < dc.chartRegistry.list().length; i++) {
       var chartI = dc.chartRegistry.list()[i];
       chartI.on("filtered", () => {
@@ -202,27 +200,6 @@ Template.dashboard.onCreated(function () {
     const tableData = instance.getTableData(timeStampDimension);
     instance.tableDataSet.set(tableData);
   }
-
-  // instance.initDatatable = function (timeStampDimension) {
-  //
-  //   const tableData = instance.getTableData(timeStampDimension);
-  //
-  //   const datatableBody = $('.dataTable tbody');
-  //
-  //   datatableBody.empty();
-  //
-  //    instance.dataTableElement = $('.dataTable').dataTable({
-  //       pagingType: 'simple',
-  //       data: tableData,
-  //       "columns": [
-  //           { "data": "country" },
-  //           { "data": "requestIp" },
-  //           { "data": "requestPath" },
-  //           { "data": "responseTime" },
-  //           { "data": "time" }
-  //       ]
-  //     });
-  // }
 
   instance.getTableData = function (timeStampDimension) {
 
@@ -259,23 +236,6 @@ Template.dashboard.onCreated(function () {
     return tableDataSet;
   }
 
-  // instance.refreshTable = function (timeStampDimension) {
-  //
-  //   const timeFrameStart = new Date().getTime();
-  //
-  //   const data = instance.getTableData(timeStampDimension);
-  //   console.log('data took ' + (new Date().getTime() - timeFrameStart)/1000 + ' seconds');
-  //   const api = instance.dataTableElement.api()
-  //   console.log('api took ' + (new Date().getTime() - timeFrameStart)/1000 + ' seconds');
-  //   const clear = api.clear();
-  //   console.log('clear took ' + (new Date().getTime() - timeFrameStart)/1000 + ' seconds');
-  //   const rows = clear.rows;
-  //   console.log('rows took ' + (new Date().getTime() - timeFrameStart)/1000 + ' seconds');
-  //   const add = rows.add(data)
-  //   console.log('add took ' + (new Date().getTime() - timeFrameStart)/1000 + ' seconds');
-  //   add.draw();
-  //   console.log('draw took ' + (new Date().getTime() - timeFrameStart)/1000 + ' seconds');
-  // }
 });
 
 Template.dashboard.onRendered(function () {
