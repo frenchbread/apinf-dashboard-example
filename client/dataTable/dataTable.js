@@ -12,12 +12,6 @@ Template.dataTable.onCreated(function () {
 });
 
 Template.dataTable.events({
-  'click #next': function (event, instance) {
-
-    let oldPageNumber = instance.pageNumber.get()
-
-    instance.pageNumber.set(oldPageNumber+1);
-  },
   'click #prev': function (event, instance) {
 
     let oldPageNumber = instance.pageNumber.get();
@@ -25,6 +19,12 @@ Template.dataTable.events({
     if (oldPageNumber > 1) {
       instance.pageNumber.set(oldPageNumber-1);
     }
+  },
+  'click #next': function (event, instance) {
+
+    let oldPageNumber = instance.pageNumber.get()
+
+    instance.pageNumber.set(oldPageNumber+1);
   }
 })
 
@@ -40,6 +40,14 @@ Template.dataTable.helpers({
     const arrEnd = arrStart + rowCount;
 
     return Template.currentData().tableDataSet.slice(arrStart, arrEnd);
+  },
+  showPrevButton () {
+
+    const instance = Template.instance();
+
+    const pageNumber = instance.pageNumber.get();
+
+    return pageNumber > 1;
   },
   showNextButton () {
 
