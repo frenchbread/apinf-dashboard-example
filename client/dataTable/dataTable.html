@@ -46,8 +46,11 @@
       </tbody>
     </table>
     <div class="btn-group">
+      
       <button class="btn btn-sm btn-default" id="prev">Prev</button>
-      <button class="btn btn-sm btn-default" id="next">Next</button>
+      {{ # if showNextButton }}
+        <button class="btn btn-sm btn-default" id="next">Next</button>
+      {{ / if }}
     </div>
   </div>
 </template>

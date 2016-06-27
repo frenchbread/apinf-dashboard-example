@@ -5,10 +5,9 @@ Template.dataTable.onCreated(function () {
   instance.rowCount = new ReactiveVar(10);
   instance.pageNumber = new ReactiveVar(1);
 
-  instance.autorun(() => {
-
-    console.log(instance.pageNumber.get())
-  })
+  // instance.autorun(() => {
+  //
+  // })
 
 });
 
@@ -40,6 +39,17 @@ Template.dataTable.helpers({
     const arrStart = rowCount * pageNumber;
     const arrEnd = arrStart + rowCount;
 
-    return instance.data.tableDataSet.slice(arrStart, arrEnd);
+    return Template.currentData().tableDataSet.slice(arrStart, arrEnd);
+  },
+  showNextButton () {
+
+    const instance = Template.instance();
+
+    const rowCount = instance.rowCount.get();
+    const pageNumber = instance.pageNumber.get();
+
+    const dataSetLength = Template.currentData().tableDataSet.length;
+
+    return pageNumber < (dataSetLength / rowCount - 1);
   }
 })
