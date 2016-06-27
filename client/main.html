@@ -32,53 +32,7 @@
       </div>
     </div>
     <div class="row">
-      <div class="box box-primary" id="data-table-box">
-        <div class="box-header with-border">
-          <h3 class="box-title">Table</h3>
-        </div>
-        <table class="dataTable">
-          <thead>
-            <tr>
-              <th>
-                One
-              </th>
-              <th>
-                Two
-              </th>
-              <th>
-                Three
-              </th>
-              <th>
-                Four
-              </th>
-              <th>
-                Five
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {{ # each row in tableDataSet }}
-              <tr>
-                <td class="row">
-                  {{ row.time }}
-                </td>
-                <td>
-                  {{ row.country }}
-                </td>
-                <td>
-                  {{ row.requestPath }}
-                </td>
-                <td>
-                  {{ row.requestIp }}
-                </td>
-                <td>
-                  {{ row.responseTime }}
-                </td>
-              </tr>
-            {{ / each}}
-          </tbody>
-        </table>
-      </div>
+      {{ > dataTable tableDataSet=tableDataSet }}
     </div>
   </div>
 </template>
