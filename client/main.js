@@ -192,11 +192,16 @@ Template.dashboard.onCreated(function () {
       var chartI = dc.chartRegistry.list()[i];
       chartI.on("filtered", () => {
 
-        const tableData = instance.getTableData(timeStampDimension);
-        instance.tableDataSet.set(tableData);
+        instance.updateDataTable(timeStampDimension);
+        instance.updateLineChart(line, focus, timeScaleForLine);
+
       });
     }
 
+    instance.updateDataTable(timeStampDimension);
+  }
+
+  instance.updateDataTable = function (timeStampDimension) {
     const tableData = instance.getTableData(timeStampDimension);
     instance.tableDataSet.set(tableData);
   }
@@ -236,6 +241,16 @@ Template.dashboard.onCreated(function () {
     return tableDataSet;
   }
 
+  instance.updateLineChart = function (line, focus, timeScaleForLine) {
+
+    const selectedTimeRange = focus.filter();
+
+    if (selectedTimeRange) {
+      line.x(d3.time.scale().domain(selectedTimeRange));
+    } else {
+      line.x(timeScaleForLine);
+    }
+  }
 });
 
 Template.dashboard.onRendered(function () {
