@@ -2,6 +2,11 @@ import { Meteor } from 'meteor/meteor';
 
 import { esClient } from '/server/elasticsearch';
 
+import async from 'async';
+
+import { Analytics } from '/both/collections/analytics';
+import _ from 'lodash';
+
 Meteor.methods({
   getElasticSearchData (params) {
 
@@ -27,7 +32,7 @@ Meteor.methods({
       return res;
     });
   },
-  syncElasticSearchData () {
+  async syncElasticSearchData () {
 
     const params = {
       index: 'api-umbrella-logs-v1-2016-06',
@@ -38,11 +43,17 @@ Meteor.methods({
       }
     };
 
-    return esClient.search(params).then((res) => {
+    const items = await esClient.search(params).then((res) => {
 
-      const items = res.hits.hits;
+      return res.hits.hits;
 
-      return items;
+    }, (err) => {
+
+      console.log('err', err);
+    });
+
+    _.forEach(items, (item) => {
+      Analytics.insert(item);
     });
   }
 })
