@@ -3,6 +3,10 @@ import { ReactiveVar } from 'meteor/reactive-var';
 
 import './main.html';
 
+import { esClient } from '/server/elasticsearch';
+
+import { Analytics } from '/both/collections/analytics';
+
 import _ from 'lodash';
 import moment from 'moment';
 import dc from 'dc';
@@ -13,36 +17,33 @@ Template.dashboard.onCreated(function () {
 
   const instance = this;
 
-  instance.esData = new ReactiveVar();
-  instance.parsedData = new ReactiveVar();
+  instance.subscribe('Analytics');
+
+  instance.autorun(() => {
+    if (instance.subscriptionsReady()) {
+      const logs = Analytics.find(
+        {}, {
+          fields: {
+            '_source.response_time': 1,
+            '_source.response_status': 1,
+            '_source.request_at': 1,
+            '_source.request_ip': 1,
+            '_source.request_path': 1
+          }
+        }
+      ).fetch();
+      instance.esData.set(logs);
+    }
+  })
+
+  instance.esData = new ReactiveVar([]);
+  instance.parsedData = new ReactiveVar([]);
 
   instance.dataTableElement = {};
 
   instance.tableDataSet = new ReactiveVar([]);
 
   instance.timeStart = new Date().getTime();
-
-  console.log('Starting to fetch stuff..')
-
-  const params = {
-    index: 'api-umbrella-logs-v1-2016-06',
-    type: 'log',
-    size: 1000,
-    query: {
-      match_all: {}
-    },
-    fields: [
-      'request_at',
-      'response_status',
-      'response_time',
-      'request_ip_country',
-      'request_ip',
-      'request_path',
-      // 'request_ip_location.lon',
-      // 'request_ip_location.lat',
-      // 'api_key'
-    ]
-  }
 
   Meteor.call('getElasticSearchData', params, (err, res) => {
 
@@ -56,7 +57,7 @@ Template.dashboard.onCreated(function () {
 
   instance.parseChartData = function (chartData) {
 
-    const items = chartData.hits.hits;
+    const items = chartData;
 
     const index = new crossfilter(items);
 
@@ -64,19 +65,19 @@ Template.dashboard.onCreated(function () {
 
     const timeStampDimension = index.dimension((d) => {
 
-      let timeStamp = moment(d.fields.request_at[0]);
+      let timeStamp = moment(d._source.request_at);
 
       timeStamp = timeStamp.format('YYYY-MM-DD-HH');
 
-      d.fields.ymd = dateFormat.parse(timeStamp);
+      d._source.ymd = dateFormat.parse(timeStamp);
 
-      return d.fields.ymd;
+      return d._source.ymd;
     });
     const timeStampGroup = timeStampDimension.group();
 
     const statusCodeDimension = index.dimension((d) => {
 
-      const statusCode = d.fields.response_status[0];
+      const statusCode = d._source.response_status;
 
       let statusCodeScope = '';
 
@@ -100,7 +101,7 @@ Template.dashboard.onCreated(function () {
     });
     const statusCodeGroup = statusCodeDimension.group();
 
-    const responseTimeDimension = index.dimension((d) => { return d.fields.response_time[0]/1000; });
+    const responseTimeDimension = index.dimension((d) => { return d._source.response_time/1000; });
     const responseTimeGroup = responseTimeDimension.group();
 
     const all = index.groupAll();
@@ -109,8 +110,8 @@ Template.dashboard.onCreated(function () {
       .dimension(index)
       .group(all);
 
-    const minDate = d3.min(items, function(d) { return d.fields.ymd; });
-    const maxDate = d3.max(items, function(d) { return d.fields.ymd; });
+    const minDate = d3.min(items, function(d) { return d._source.ymd; });
+    const maxDate = d3.max(items, function(d) { return d._source.ymd; });
 
     const timeScaleForLine = d3.time.scale().domain([minDate, maxDate]);
     const timeScaleForFocus = d3.time.scale().domain([minDate, maxDate]);
@@ -219,19 +220,19 @@ Template.dashboard.onCreated(function () {
           responseTime;
 
       // Error handling for empty fields
-      try { time = moment(e.fields.request_at[0]).format("D/MM/YYYY HH:mm:ss"); }
+      try { time = moment(e._source.request_at).format("D/MM/YYYY HH:mm:ss"); }
       catch (e) { time = ''; }
 
-      try { country = e.fields.request_ip_country[0] }
+      try { country = e._source.request_ip_country; }
       catch (e) { country = ''; }
 
-      try { requestPath = e.fields.request_path[0]; }
+      try { requestPath = e._source.request_path; }
       catch (e) { requestPath = ''; }
 
-      try { requestIp = e.fields.request_ip[0]; }
+      try { requestIp = e._source.request_ip; }
       catch (e) { requestIp = ''; }
 
-      try { responseTime = e.fields.response_time[0]; }
+      try { responseTime = e._source.response_time; }
       catch (e) { responseTime = ''; }
 
       tableDataSet.push({ time, country, requestPath, requestIp, responseTime });
@@ -265,9 +266,9 @@ Template.dashboard.onRendered(function () {
 
     const chartData = instance.esData.get();
 
-    if (chartData) {
+    if (chartData.length > 0) {
 
-      console.log(chartData)
+      console.log((new Date().getTime() - instance.timeStart) / 1000 + ' seconds.');
 
       const parsedData = instance.parseChartData(chartData);
 
