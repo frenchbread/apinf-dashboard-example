@@ -5,8 +5,6 @@ import './main.html';
 
 import { esClient } from '/server/elasticsearch';
 
-import { Analytics } from '/both/collections/analytics';
-
 import _ from 'lodash';
 import moment from 'moment';
 import dc from 'dc';

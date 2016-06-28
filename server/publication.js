@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-// import { Analytics } from '/both/collections/analytics';
 
 Meteor.publish('Analytics', function () {
   return Analytics.find({}, {
