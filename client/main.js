@@ -13,25 +13,6 @@ Template.dashboard.onCreated(function () {
 
   const instance = this;
 
-  instance.subscribe('Analytics');
-
-  instance.autorun(() => {
-    if (instance.subscriptionsReady()) {
-      const logs = Analytics.find(
-        {}, {
-          fields: {
-            '_source.response_time': 1,
-            '_source.response_status': 1,
-            '_source.request_at': 1,
-            '_source.request_ip': 1,
-            '_source.request_path': 1
-          }
-        }
-      ).fetch();
-      instance.esData.set(logs);
-    }
-  })
-
   instance.esData = new ReactiveVar([]);
   instance.parsedData = new ReactiveVar([]);
 
@@ -40,6 +21,16 @@ Template.dashboard.onCreated(function () {
   instance.tableDataSet = new ReactiveVar([]);
 
   instance.timeStart = new Date().getTime();
+
+  instance.subscribe('Analytics');
+
+  instance.autorun(() => {
+    const logs = Analytics.find().fetch();
+    // if (logs) {
+    //
+    // }
+    instance.esData.set(logs);
+  })
 
   // Meteor.call('getElasticSearchData', params, (err, res) => {
   //
@@ -61,19 +52,19 @@ Template.dashboard.onCreated(function () {
 
     const timeStampDimension = index.dimension((d) => {
 
-      let timeStamp = moment(d._source.request_at);
+      let timeStamp = moment(d.request_at);
 
       timeStamp = timeStamp.format('YYYY-MM-DD-HH');
 
-      d._source.ymd = dateFormat.parse(timeStamp);
+      d.ymd = dateFormat.parse(timeStamp);
 
-      return d._source.ymd;
+      return d.ymd;
     });
     const timeStampGroup = timeStampDimension.group();
 
     const statusCodeDimension = index.dimension((d) => {
 
-      const statusCode = d._source.response_status;
+      const statusCode = d.response_status;
 
       let statusCodeScope = '';
 
@@ -97,7 +88,7 @@ Template.dashboard.onCreated(function () {
     });
     const statusCodeGroup = statusCodeDimension.group();
 
-    const responseTimeDimension = index.dimension((d) => { return d._source.response_time/1000; });
+    const responseTimeDimension = index.dimension((d) => { return d.response_time/1000; });
     const responseTimeGroup = responseTimeDimension.group();
 
     const all = index.groupAll();
@@ -106,8 +97,8 @@ Template.dashboard.onCreated(function () {
       .dimension(index)
       .group(all);
 
-    const minDate = d3.min(items, function(d) { return d._source.ymd; });
-    const maxDate = d3.max(items, function(d) { return d._source.ymd; });
+    const minDate = d3.min(items, function(d) { return d.ymd; });
+    const maxDate = d3.max(items, function(d) { return d.ymd; });
 
     const timeScaleForLine = d3.time.scale().domain([minDate, maxDate]);
     const timeScaleForFocus = d3.time.scale().domain([minDate, maxDate]);
@@ -216,19 +207,19 @@ Template.dashboard.onCreated(function () {
           responseTime;
 
       // Error handling for empty fields
-      try { time = moment(e._source.request_at).format("D/MM/YYYY HH:mm:ss"); }
+      try { time = moment(e.request_at).format("D/MM/YYYY HH:mm:ss"); }
       catch (e) { time = ''; }
 
-      try { country = e._source.request_ip_country; }
+      try { country = e.request_ip_country; }
       catch (e) { country = ''; }
 
-      try { requestPath = e._source.request_path; }
+      try { requestPath = e.request_path; }
       catch (e) { requestPath = ''; }
 
-      try { requestIp = e._source.request_ip; }
+      try { requestIp = e.request_ip; }
       catch (e) { requestIp = ''; }
 
-      try { responseTime = e._source.response_time; }
+      try { responseTime = e.response_time; }
       catch (e) { responseTime = ''; }
 
       tableDataSet.push({ time, country, requestPath, requestIp, responseTime });
@@ -262,17 +253,19 @@ Template.dashboard.onRendered(function () {
 
     const chartData = instance.esData.get();
 
-    if (chartData.length > 0) {
+    // if (chartData.length > 0) {
+    //
+    //
+    //
+    // }
 
-      console.log((new Date().getTime() - instance.timeStart) / 1000 + ' seconds.');
+    console.log((new Date().getTime() - instance.timeStart) / 1000 + ' seconds - ' + chartData.length);
 
-      const parsedData = instance.parseChartData(chartData);
+    const parsedData = instance.parseChartData(chartData);
 
-      instance.renderCharts(parsedData);
+    instance.renderCharts(parsedData);
 
-      chartElemets.removeClass('loader');
-
-    }
+    chartElemets.removeClass('loader');
   });
 });
 

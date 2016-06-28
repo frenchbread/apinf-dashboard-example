@@ -69,7 +69,15 @@ Meteor.methods({
 
           if (!itemExists) {
             try {
-              Analytics.insert(item);
+              Analytics.insert({
+                _id: item._id,
+                request_at: item._source.request_at,
+                request_ip_country: item._source.request_ip_country,
+                request_path: item._source.request_path,
+                request_ip: item._source.request_ip,
+                response_time: item._source.response_time,
+                response_status: item._source.response_status
+              });
             } catch (err) {
               console.log(err);
             }
@@ -92,7 +100,6 @@ Meteor.methods({
   },
   getAggr () {
 
-
     esClient.search({
       index: 'api-umbrella-logs-v1-2016-06',
       type: 'log',
@@ -114,4 +121,5 @@ Meteor.methods({
     }).then((res) => {
       console.log(res);
     })
+  }
 })
