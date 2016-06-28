@@ -5,6 +5,7 @@
     "start": "meteor run"
   },
   "dependencies": {
+    "async": "^2.0.0-rc.6",
     "d3": "^3.5.17",
     "dc": "^2.0.0-beta.30",
     "elasticsearch": "^11.0.1",
