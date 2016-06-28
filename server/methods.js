@@ -34,26 +34,61 @@ Meteor.methods({
   },
   async syncElasticSearchData () {
 
-    const params = {
-      index: 'api-umbrella-logs-v1-2016-06',
-      type: 'log',
-      size: 10,
-      query: {
-        match_all: {}
+    let syncComplete = false;
+    let fromItem = 0;
+    let size = 10000;
+
+    console.log('Sync started.');
+
+    while (syncComplete === false) {
+
+      const params = {
+        index: 'api-umbrella-logs-v1-2016-06',
+        type: 'log',
+        from: fromItem,
+        size: size,
+        query: {
+          match_all: {}
+        }
+      };
+
+      const items = await esClient.search(params).then((res) => {
+
+        return res.hits.hits;
+      }, (err) => {
+
+        throw new Meteor.error(err);
+      });
+
+      if (items.length > 0) {
+
+        _.forEach(items, (item) => {
+
+          // console.log('inserting')
+
+          const itemExists = Analytics.findOne({ _id: item._id });
+
+          if (!itemExists) {
+            try {
+              Analytics.insert(item);
+            } catch (err) {
+              console.log(err);
+            }
+            // console.log('Ok!');
+          } else {
+            // console.log('Passed!');
+          }
+          // console.log(item);
+        });
+
+        console.log('10k done! -----------------------');
+
+        fromItem += size;
+      } else {
+        syncComplete = true;
       }
-    };
+    }
 
-    const items = await esClient.search(params).then((res) => {
-
-      return res.hits.hits;
-
-    }, (err) => {
-
-      console.log('err', err);
-    });
-
-    _.forEach(items, (item) => {
-      Analytics.insert(item);
-    });
+    console.log('Sync complete.');
   }
 })
