@@ -4,7 +4,6 @@ import { esClient } from '/server/elasticsearch';
 
 import async from 'async';
 
-import { Analytics } from '/both/collections/analytics';
 import _ from 'lodash';
 
 Meteor.methods({
@@ -90,5 +89,29 @@ Meteor.methods({
     }
 
     console.log('Sync complete.');
-  }
+  },
+  getAggr () {
+
+
+    esClient.search({
+      index: 'api-umbrella-logs-v1-2016-06',
+      type: 'log',
+      "size" : 0,
+      "aggs": {
+        "response_time": {
+          "date_histogram": {
+            "field": "response_time",
+            "interval": "month",
+            "format": "yyyy-MM-dd",
+            "min_doc_count" : 0,
+            "extended_bounds" : {
+              "min" : "2014-01-01",
+              "max" : "2014-12-31"
+            }
+          }
+        }
+      }
+    }).then((res) => {
+      console.log(res);
+    })
 })
