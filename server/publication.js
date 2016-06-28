@@ -9,6 +9,6 @@ Meteor.publish('Analytics', function () {
       '_source.request_ip': 1,
       '_source.request_path': 1
     },
-    limit: 50000
+    limit: 10000
   });
 })

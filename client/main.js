@@ -3,8 +3,6 @@ import { ReactiveVar } from 'meteor/reactive-var';
 
 import './main.html';
 
-import { esClient } from '/server/elasticsearch';
-
 import _ from 'lodash';
 import moment from 'moment';
 import dc from 'dc';
@@ -43,15 +41,15 @@ Template.dashboard.onCreated(function () {
 
   instance.timeStart = new Date().getTime();
 
-  Meteor.call('getElasticSearchData', params, (err, res) => {
-
-    if (err) console.log('err: ', err);
-
-    console.log('Got result!');
-    console.log('Took ' + (new Date().getTime() - instance.timeStart) / 1000 + ' seconds.');
-
-    instance.esData.set(res);
-  });
+  // Meteor.call('getElasticSearchData', params, (err, res) => {
+  //
+  //   if (err) console.log('err: ', err);
+  //
+  //   console.log('Got result!');
+  //   console.log('Took ' + (new Date().getTime() - instance.timeStart) / 1000 + ' seconds.');
+  //
+  //   instance.esData.set(res);
+  // });
 
   instance.parseChartData = function (chartData) {
 
