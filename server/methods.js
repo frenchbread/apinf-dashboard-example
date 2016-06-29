@@ -22,6 +22,10 @@ Meteor.methods({
       opts.body.fields = params.fields;
     }
 
+    if (params.sort && params.fields.sort != 0) {
+      opts.body.sort = params.sort;
+    }
+
     const start = new Date().getTime();
 
     return esClient.search(opts).then((res) => {
