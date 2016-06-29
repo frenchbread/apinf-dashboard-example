@@ -136,8 +136,6 @@ Template.dashboard.onCreated(function () {
     const timeScaleForFocus = d3.time.scale().domain([minDate, maxDate]);
     const xScaleForBar = d3.scale.pow().domain([minResponseTime, 1000]);
 
-    console.log(minDate, maxDate);
-
     return {
       timeStampDimension    : timeStampDimension,
       timeStampGroup        : timeStampGroup,
@@ -212,7 +210,7 @@ Template.dashboard.onCreated(function () {
       .margins({top: 5, right: 20, bottom: 25, left: 40})
       .brushOn(true)
       .x(xScaleForBar)
-      // .xAxis().ticks(5);
+      .renderHorizontalGridLines(true);
 
     dc.renderAll();
 

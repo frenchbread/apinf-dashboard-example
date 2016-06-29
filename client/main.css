@@ -24,3 +24,28 @@
 .dc-chart g.row text{
   fill: #333;
 }
+
+table.dataTable {
+  margin-bottom: 10px;
+  border-collapse: collapse;
+}
+
+table.dataTable.table-bordered, table.dataTable.table-bordered > tbody > tr > td {
+  border: 1px solid #eee;
+}
+
+.caption {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  color: #777;
+  text-align: left;
+}
+
+.padding-sides {
+  padding: 0 15px;
+}
+
+.page-numbers {
+  line-height: 30px;
+  vertical-align: middle;
+}
