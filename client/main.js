@@ -118,7 +118,6 @@ Template.dashboard.onCreated(function () {
     const binwidth = 100;
     const minResponseTime = d3.min(items, function(d) { return d.fields.response_time[0]; });
     const maxResponseTime = d3.max(items, function(d) { return d.fields.response_time[0]; });
-    console.log(maxResponseTime)
     const responseTimeDimension = index.dimension((d) => { return d.fields.response_time[0]; });
     const responseTimeGroup = responseTimeDimension.group((d) => {
       return binwidth * Math.floor(d / binwidth);
@@ -148,7 +147,8 @@ Template.dashboard.onCreated(function () {
       responseTimeGroup     : responseTimeGroup,
       timeScaleForLine      : timeScaleForLine,
       timeScaleForFocus     : timeScaleForFocus,
-      xScaleForBar          : xScaleForBar
+      xScaleForBar          : xScaleForBar,
+      binwidth              : binwidth
     };
   }
 
@@ -163,11 +163,12 @@ Template.dashboard.onCreated(function () {
     const timeScaleForLine      = parsedData.timeScaleForLine;
     const timeScaleForFocus     = parsedData.timeScaleForFocus;
     const xScaleForBar          = parsedData.xScaleForBar;
+    const binwidth              = parsedData.binwidth;
 
     const line = dc.lineChart('#line-chart');
     const focus = dc.barChart('#focus-chart');
     const row = dc.rowChart('#row-chart');
-    const bar = dc.barChart('#line2-chart');
+    const bar = dc.barChart('#bar-chart');
 
     line
       .height(350)
@@ -207,11 +208,11 @@ Template.dashboard.onCreated(function () {
       .transitionDuration(500)
       .dimension(responseTimeDimension)
       .group(responseTimeGroup)
-      .xUnits(dc.units.fp.precision(100))
-      .margins({top: 5, right: 10, bottom: 25, left: 40})
+      .xUnits(dc.units.fp.precision(binwidth))
+      .margins({top: 5, right: 20, bottom: 25, left: 40})
       .brushOn(true)
       .x(xScaleForBar)
-      .xAxis().ticks(5);
+      // .xAxis().ticks(5);
 
     dc.renderAll();
 
@@ -286,7 +287,7 @@ Template.dashboard.onRendered(function () {
 
   const instance = this;
 
-  const chartElemets = $('#line-chart, #focus-chart, #row-chart, #line2-chart');
+  const chartElemets = $('#line-chart, #focus-chart, #row-chart, #bar-chart');
 
   chartElemets.addClass('loader');
 
