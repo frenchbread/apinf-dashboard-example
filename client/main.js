@@ -35,9 +35,9 @@ Template.dashboard.onCreated(function () {
   // })
 
   const params = {
-    index: 'api-umbrella-logs-v1-2016-06',
-    type: 'log',
-    size: 40000,
+    // index: 'api-umbrella-logs-v1-2016-06',
+    // type: 'log',
+    size: 10000,
     query: {
       match_all: {}
     },
@@ -115,8 +115,14 @@ Template.dashboard.onCreated(function () {
     });
     const statusCodeGroup = statusCodeDimension.group();
 
-    const responseTimeDimension = index.dimension((d) => { return d.fields.response_time[0] / 1000; });
-    const responseTimeGroup = responseTimeDimension.group();
+    const binwidth = 100;
+    const minResponseTime = d3.min(items, function(d) { return d.fields.response_time[0]; });
+    const maxResponseTime = d3.max(items, function(d) { return d.fields.response_time[0]; });
+    console.log(maxResponseTime)
+    const responseTimeDimension = index.dimension((d) => { return d.fields.response_time[0]; });
+    const responseTimeGroup = responseTimeDimension.group((d) => {
+      return binwidth * Math.floor(d / binwidth);
+    });
 
     const all = index.groupAll();
 
@@ -129,6 +135,7 @@ Template.dashboard.onCreated(function () {
 
     const timeScaleForLine = d3.time.scale().domain([minDate, maxDate]);
     const timeScaleForFocus = d3.time.scale().domain([minDate, maxDate]);
+    const xScaleForBar = d3.scale.pow().domain([minResponseTime, 1000]);
 
     console.log(minDate, maxDate);
 
@@ -141,6 +148,7 @@ Template.dashboard.onCreated(function () {
       responseTimeGroup     : responseTimeGroup,
       timeScaleForLine      : timeScaleForLine,
       timeScaleForFocus     : timeScaleForFocus,
+      xScaleForBar          : xScaleForBar
     };
   }
 
@@ -154,11 +162,12 @@ Template.dashboard.onCreated(function () {
     const responseTimeGroup     = parsedData.responseTimeGroup;
     const timeScaleForLine      = parsedData.timeScaleForLine;
     const timeScaleForFocus     = parsedData.timeScaleForFocus;
+    const xScaleForBar          = parsedData.xScaleForBar;
 
     const line = dc.lineChart('#line-chart');
     const focus = dc.barChart('#focus-chart');
     const row = dc.rowChart('#row-chart');
-    const line2 = dc.lineChart('#line2-chart');
+    const bar = dc.barChart('#line2-chart');
 
     line
       .height(350)
@@ -193,15 +202,16 @@ Template.dashboard.onCreated(function () {
       .elasticX(true)
       .xAxis().ticks(5);
 
-    line2
+    bar
       .height(215)
       .transitionDuration(500)
-      .x(timeScaleForLine)
       .dimension(responseTimeDimension)
       .group(responseTimeGroup)
-      .brushOn(false)
-      .xAxis().ticks(4)
-      // .elasticY(true);
+      .xUnits(dc.units.fp.precision(100))
+      .margins({top: 5, right: 10, bottom: 25, left: 40})
+      .brushOn(true)
+      .x(xScaleForBar)
+      .xAxis().ticks(5);
 
     dc.renderAll();
 
