@@ -13,8 +13,8 @@ Template.dashboard.onCreated(function () {
 
   const instance = this;
 
-  instance.esData = new ReactiveVar([]);
-  instance.parsedData = new ReactiveVar([]);
+  instance.esData = new ReactiveVar();
+  instance.parsedData = new ReactiveVar();
 
   instance.dataTableElement = {};
 
@@ -22,25 +22,52 @@ Template.dashboard.onCreated(function () {
 
   instance.timeStart = new Date().getTime();
 
-  instance.subscribe('Analytics');
+  // instance.subscribe('Analytics');
 
-  instance.autorun(() => {
-    const logs = Analytics.find().fetch();
-    // if (logs) {
-    //
-    // }
-    instance.esData.set(logs);
-  })
+  // instance.autorun(() => {
+  //   if (instance.subscriptionsReady()) {
+  //     const logs = Analytics.find().fetch();
+  //     if (logs.length > 0) {
+  //       console.log((new Date().getTime() - instance.timeStart) / 1000 + ' seconds - ' + logs.length);
+  //       instance.esData.set(logs);
+  //     }
+  //   }
+  // })
 
-  // Meteor.call('getElasticSearchData', params, (err, res) => {
-  //
-  //   if (err) console.log('err: ', err);
-  //
-  //   console.log('Got result!');
-  //   console.log('Took ' + (new Date().getTime() - instance.timeStart) / 1000 + ' seconds.');
-  //
-  //   instance.esData.set(res);
-  // });
+  const params = {
+    index: 'api-umbrella-logs-v1-2016-06',
+    type: 'log',
+    size: 40000,
+    query: {
+      match_all: {}
+    },
+    sort : [
+        { request_at : { order : 'desc' }},
+    ],
+    fields: [
+      'request_at',
+      'response_status',
+      'response_time',
+      'request_ip_country',
+      'request_ip',
+      'request_path',
+      'request_ip_location.lon',
+      'request_ip_location.lat',
+      'api_key'
+    ]
+  }
+
+  Meteor.call('getElasticSearchData', params, (err, res) => {
+
+    if (err) console.log('err: ', err);
+
+    console.log('Got result!');
+    console.log('Took ' + (new Date().getTime() - instance.timeStart) / 1000 + ' seconds.');
+
+    // console.log(res)
+
+    instance.esData.set(res.hits.hits);
+  });
 
   instance.parseChartData = function (chartData) {
 
@@ -52,19 +79,19 @@ Template.dashboard.onCreated(function () {
 
     const timeStampDimension = index.dimension((d) => {
 
-      let timeStamp = moment(d.request_at);
+      let timeStamp = moment(d.fields.request_at[0]);
 
       timeStamp = timeStamp.format('YYYY-MM-DD-HH');
 
-      d.ymd = dateFormat.parse(timeStamp);
+      d.fields.ymd = dateFormat.parse(timeStamp);
 
-      return d.ymd;
+      return d.fields.ymd;
     });
     const timeStampGroup = timeStampDimension.group();
 
     const statusCodeDimension = index.dimension((d) => {
 
-      const statusCode = d.response_status;
+      const statusCode = d.fields.response_status[0];
 
       let statusCodeScope = '';
 
@@ -88,7 +115,7 @@ Template.dashboard.onCreated(function () {
     });
     const statusCodeGroup = statusCodeDimension.group();
 
-    const responseTimeDimension = index.dimension((d) => { return d.response_time/1000; });
+    const responseTimeDimension = index.dimension((d) => { return d.fields.response_time[0] / 1000; });
     const responseTimeGroup = responseTimeDimension.group();
 
     const all = index.groupAll();
@@ -97,11 +124,13 @@ Template.dashboard.onCreated(function () {
       .dimension(index)
       .group(all);
 
-    const minDate = d3.min(items, function(d) { return d.ymd; });
-    const maxDate = d3.max(items, function(d) { return d.ymd; });
+    const minDate = d3.min(items, function(d) { return d.fields.ymd; });
+    const maxDate = d3.max(items, function(d) { return d.fields.ymd; });
 
     const timeScaleForLine = d3.time.scale().domain([minDate, maxDate]);
     const timeScaleForFocus = d3.time.scale().domain([minDate, maxDate]);
+
+    console.log(minDate, maxDate);
 
     return {
       timeStampDimension    : timeStampDimension,
@@ -176,8 +205,10 @@ Template.dashboard.onCreated(function () {
 
     dc.renderAll();
 
-    for (var i = 0; i < dc.chartRegistry.list().length; i++) {
-      var chartI = dc.chartRegistry.list()[i];
+    for (let i = 0; i < dc.chartRegistry.list().length; i++) {
+
+      const chartI = dc.chartRegistry.list()[i];
+
       chartI.on("filtered", () => {
 
         instance.updateDataTable(timeStampDimension);
@@ -207,19 +238,19 @@ Template.dashboard.onCreated(function () {
           responseTime;
 
       // Error handling for empty fields
-      try { time = moment(e.request_at).format("D/MM/YYYY HH:mm:ss"); }
+      try { time = moment(e.fields.request_at[0]).format("D/MM/YYYY HH:mm:ss"); }
       catch (e) { time = ''; }
 
-      try { country = e.request_ip_country; }
+      try { country = e.fields.request_ip_country[0]; }
       catch (e) { country = ''; }
 
-      try { requestPath = e.request_path; }
+      try { requestPath = e.fields.request_path[0]; }
       catch (e) { requestPath = ''; }
 
-      try { requestIp = e.request_ip; }
+      try { requestIp = e.fields.request_ip[0]; }
       catch (e) { requestIp = ''; }
 
-      try { responseTime = e.response_time; }
+      try { responseTime = e.fields.response_time[0]; }
       catch (e) { responseTime = ''; }
 
       tableDataSet.push({ time, country, requestPath, requestIp, responseTime });
@@ -253,19 +284,14 @@ Template.dashboard.onRendered(function () {
 
     const chartData = instance.esData.get();
 
-    // if (chartData.length > 0) {
-    //
-    //
-    //
-    // }
+    if (chartData) {
 
-    console.log((new Date().getTime() - instance.timeStart) / 1000 + ' seconds - ' + chartData.length);
+      const parsedData = instance.parseChartData(chartData);
 
-    const parsedData = instance.parseChartData(chartData);
+      instance.renderCharts(parsedData);
 
-    instance.renderCharts(parsedData);
-
-    chartElemets.removeClass('loader');
+      chartElemets.removeClass('loader');
+    }
   });
 });
 
