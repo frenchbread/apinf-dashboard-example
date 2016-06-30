@@ -7,24 +7,7 @@ import async from 'async';
 import _ from 'lodash';
 
 Meteor.methods({
-  getElasticSearchData (params) {
-
-    let opts = {
-      index: params.index,
-      type: params.type,
-      size: params.size,
-      body: {
-        query: params.query
-      }
-    };
-
-    if (params.fields && params.fields.length != 0) {
-      opts.body.fields = params.fields;
-    }
-
-    if (params.sort && params.fields.sort != 0) {
-      opts.body.sort = params.sort;
-    }
+  getElasticSearchData (opts) {
 
     const start = new Date().getTime();
 

@@ -32,29 +32,41 @@ Template.dashboard.onCreated(function () {
   //       instance.esData.set(logs);
   //     }
   //   }
-  // })
-
+  // }));
   const params = {
     // index: 'api-umbrella-logs-v1-2016-06',
     // type: 'log',
     size: 10000,
-    query: {
-      match_all: {}
-    },
-    sort : [
-        { request_at : { order : 'desc' }},
-    ],
-    fields: [
-      'request_at',
-      'response_status',
-      'response_time',
-      'request_ip_country',
-      'request_ip',
-      'request_path',
-      'request_ip_location.lon',
-      'request_ip_location.lat',
-      'api_key'
-    ]
+    body: {
+      query: {
+        filtered: {
+          query: {
+            match_all: {}
+          },
+          filter: {
+            range: {
+              request_at: {
+                gte: moment().subtract(30, 'day').valueOf()
+              }
+            }
+          }
+        }
+      },
+      sort : [
+          { request_at : { order : 'desc' }},
+      ],
+      fields: [
+        'request_at',
+        'response_status',
+        'response_time',
+        'request_ip_country',
+        'request_ip',
+        'request_path',
+        'request_ip_location.lon',
+        'request_ip_location.lat',
+        'api_key'
+      ]
+    }
   }
 
   Meteor.call('getElasticSearchData', params, (err, res) => {
@@ -172,7 +184,7 @@ Template.dashboard.onCreated(function () {
       .height(350)
       .renderArea(true)
       .transitionDuration(500)
-      .margins({top: 5, right: 10, bottom: 25, left: 40})
+      .margins({top: 5, right: 20, bottom: 25, left: 40})
       .x(timeScaleForLine)
       .dimension(timeStampDimension)
       .group(timeStampGroup)
@@ -180,7 +192,8 @@ Template.dashboard.onCreated(function () {
       .brushOn(false)
       .renderHorizontalGridLines(true)
       .renderVerticalGridLines(true)
-      .elasticY(true);
+      .elasticY(true)
+      .xUnits(d3.time.months);;
 
     focus
       .height(100)
@@ -188,7 +201,7 @@ Template.dashboard.onCreated(function () {
       .group(timeStampGroup)
       .centerBar(true)
       .gap(1)
-      .margins({top: 5, right: 10, bottom: 25, left: 40})
+      .margins({top: 5, right: 20, bottom: 25, left: 40})
       .x(timeScaleForFocus)
       .alwaysUseRounding(true)
       .elasticY(true)
@@ -207,10 +220,11 @@ Template.dashboard.onCreated(function () {
       .dimension(responseTimeDimension)
       .group(responseTimeGroup)
       .xUnits(dc.units.fp.precision(binwidth))
-      .margins({top: 5, right: 20, bottom: 25, left: 40})
+      .margins({top: 5, right: 20, bottom: 25, left: 45})
       .brushOn(true)
       .x(xScaleForBar)
-      .renderHorizontalGridLines(true);
+      .renderHorizontalGridLines(true)
+      .xAxis().ticks(10);
 
     dc.renderAll();
 
