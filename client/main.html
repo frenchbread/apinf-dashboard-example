@@ -10,31 +10,16 @@
 <template name="dashboard">
   <div class="container">
     <h1>Apinf dashboard</h1>
-    <div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <div class="row">
-          <div class="col-md-6 text-center" id="row-selection">
-            <h1 class="filter-count">_</h1>
-            <span>
-              of
-              <strong class="total-count">_</strong>
-              records
-            </span>
-          </div>
-          <div class="col-md-6 text-center">
-            <h1>50%</h1>
-            <span>response rate</span>
-          </div>
-        </div>
-      </div>
-    </div>
     <div class="row">
       <div class="col-md-12">
         <div>
           <h4 >
             API Request Timeline
+            <small class="pull-right" style="line-height: 25px;">
+              <span id="row-selection" style="margin:0">
+                Showing <strong class="filter-count">_</strong> of <strong class="total-count">_</strong> records
+              </span>
+            </small>
           </h4>
           <div id="line-chart"></div>
         </div>

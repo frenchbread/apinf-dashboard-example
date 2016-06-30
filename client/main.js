@@ -22,21 +22,8 @@ Template.dashboard.onCreated(function () {
 
   instance.timeStart = new Date().getTime();
 
-  // instance.subscribe('Analytics');
-
-  // instance.autorun(() => {
-  //   if (instance.subscriptionsReady()) {
-  //     const logs = Analytics.find().fetch();
-  //     if (logs.length > 0) {
-  //       console.log((new Date().getTime() - instance.timeStart) / 1000 + ' seconds - ' + logs.length);
-  //       instance.esData.set(logs);
-  //     }
-  //   }
-  // }));
   const params = {
-    // index: 'api-umbrella-logs-v1-2016-06',
-    // type: 'log',
-    size: 10000,
+    size: 50000,
     body: {
       query: {
         filtered: {
@@ -76,9 +63,9 @@ Template.dashboard.onCreated(function () {
     console.log('Got result!');
     console.log('Took ' + (new Date().getTime() - instance.timeStart) / 1000 + ' seconds.');
 
-    // console.log(res)
+    const hits = res.hits.hits;
 
-    instance.esData.set(res.hits.hits);
+    instance.esData.set(hits);
   });
 
   instance.parseChartData = function (chartData) {
@@ -131,6 +118,7 @@ Template.dashboard.onCreated(function () {
     const minResponseTime = d3.min(items, function(d) { return d.fields.response_time[0]; });
     const maxResponseTime = d3.max(items, function(d) { return d.fields.response_time[0]; });
     const responseTimeDimension = index.dimension((d) => { return d.fields.response_time[0]; });
+
     const responseTimeGroup = responseTimeDimension.group((d) => {
       return binwidth * Math.floor(d / binwidth);
     });
@@ -149,31 +137,33 @@ Template.dashboard.onCreated(function () {
     const xScaleForBar = d3.scale.pow().domain([minResponseTime, 1000]);
 
     return {
-      timeStampDimension    : timeStampDimension,
-      timeStampGroup        : timeStampGroup,
-      statusCodeDimension   : statusCodeDimension,
-      statusCodeGroup       : statusCodeGroup,
-      responseTimeDimension : responseTimeDimension,
-      responseTimeGroup     : responseTimeGroup,
-      timeScaleForLine      : timeScaleForLine,
-      timeScaleForFocus     : timeScaleForFocus,
-      xScaleForBar          : xScaleForBar,
-      binwidth              : binwidth
+      timeStampDimension,
+      timeStampGroup,
+      statusCodeDimension,
+      statusCodeGroup,
+      responseTimeDimension,
+      responseTimeGroup,
+      timeScaleForLine,
+      timeScaleForFocus,
+      xScaleForBar,
+      binwidth
     };
   }
 
   instance.renderCharts = function (parsedData) {
 
-    const timeStampDimension    = parsedData.timeStampDimension;
-    const timeStampGroup        = parsedData.timeStampGroup;
-    const statusCodeDimension   = parsedData.statusCodeDimension;
-    const statusCodeGroup       = parsedData.statusCodeGroup;
-    const responseTimeDimension = parsedData.responseTimeDimension;
-    const responseTimeGroup     = parsedData.responseTimeGroup;
-    const timeScaleForLine      = parsedData.timeScaleForLine;
-    const timeScaleForFocus     = parsedData.timeScaleForFocus;
-    const xScaleForBar          = parsedData.xScaleForBar;
-    const binwidth              = parsedData.binwidth;
+    const {
+      timeStampDimension,
+      timeStampGroup,
+      statusCodeDimension,
+      statusCodeGroup,
+      responseTimeDimension,
+      responseTimeGroup,
+      timeScaleForLine,
+      timeScaleForFocus,
+      xScaleForBar,
+      binwidth
+    } = parsedData;
 
     const line = dc.lineChart('#line-chart');
     const focus = dc.barChart('#focus-chart');
@@ -183,7 +173,7 @@ Template.dashboard.onCreated(function () {
     line
       .height(350)
       .renderArea(true)
-      .transitionDuration(500)
+      .transitionDuration(300)
       .margins({top: 5, right: 20, bottom: 25, left: 40})
       .x(timeScaleForLine)
       .dimension(timeStampDimension)
@@ -192,13 +182,13 @@ Template.dashboard.onCreated(function () {
       .brushOn(false)
       .renderHorizontalGridLines(true)
       .renderVerticalGridLines(true)
-      .elasticY(true)
-      .xUnits(d3.time.months);;
+      .elasticY(true);
 
     focus
       .height(100)
       .dimension(timeStampDimension)
       .group(timeStampGroup)
+      .xUnits(dc.units.fp.precision(binwidth))
       .centerBar(true)
       .gap(1)
       .margins({top: 5, right: 20, bottom: 25, left: 40})
@@ -209,6 +199,7 @@ Template.dashboard.onCreated(function () {
 
     row
       .height(215)
+      .transitionDuration(300)
       .dimension(statusCodeDimension)
       .group(statusCodeGroup)
       .elasticX(true)
@@ -216,9 +207,10 @@ Template.dashboard.onCreated(function () {
 
     bar
       .height(215)
-      .transitionDuration(500)
+      .transitionDuration(300)
       .dimension(responseTimeDimension)
       .group(responseTimeGroup)
+      .centerBar(true)
       .xUnits(dc.units.fp.precision(binwidth))
       .margins({top: 5, right: 20, bottom: 25, left: 45})
       .brushOn(true)
@@ -293,6 +285,7 @@ Template.dashboard.onCreated(function () {
       line.x(timeScaleForLine);
     }
   }
+
 });
 
 Template.dashboard.onRendered(function () {
@@ -322,5 +315,12 @@ Template.dashboard.helpers({
   tableDataSet () {
     const instance = Template.instance();
     return instance.tableDataSet.get();
+  },
+  itemsCount () {
+    const instance = Template.instance();
+    return {
+      filterItemsCount: instance.filterItemsCount.get(),
+      totalItemsCount: instance.totalItemsCount.get()
+    }
   }
 })
