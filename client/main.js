@@ -22,26 +22,38 @@ Template.dashboard.onCreated(function () {
 
   instance.timeStart = new Date().getTime();
 
-  console.log('Starting to fetch stuff..')
-
   const params = {
-    index: 'api-umbrella-logs-v1-2016-06',
-    type: 'log',
-    size: 1000,
-    query: {
-      match_all: {}
-    },
-    fields: [
-      'request_at',
-      'response_status',
-      'response_time',
-      'request_ip_country',
-      'request_ip',
-      'request_path',
-      // 'request_ip_location.lon',
-      // 'request_ip_location.lat',
-      // 'api_key'
-    ]
+    size: 50000,
+    body: {
+      query: {
+        filtered: {
+          query: {
+            match_all: {}
+          },
+          filter: {
+            range: {
+              request_at: {
+                gte: moment().subtract(30, 'day').valueOf()
+              }
+            }
+          }
+        }
+      },
+      sort : [
+          { request_at : { order : 'desc' }},
+      ],
+      fields: [
+        'request_at',
+        'response_status',
+        'response_time',
+        'request_ip_country',
+        'request_ip',
+        'request_path',
+        'request_ip_location.lon',
+        'request_ip_location.lat',
+        'api_key'
+      ]
+    }
   }
 
   Meteor.call('getElasticSearchData', params, (err, res) => {
@@ -51,12 +63,14 @@ Template.dashboard.onCreated(function () {
     console.log('Got result!');
     console.log('Took ' + (new Date().getTime() - instance.timeStart) / 1000 + ' seconds.');
 
-    instance.esData.set(res);
+    const hits = res.hits.hits;
+
+    instance.esData.set(hits);
   });
 
   instance.parseChartData = function (chartData) {
 
-    const items = chartData.hits.hits;
+    const items = chartData;
 
     const index = new crossfilter(items);
 
@@ -100,8 +114,14 @@ Template.dashboard.onCreated(function () {
     });
     const statusCodeGroup = statusCodeDimension.group();
 
-    const responseTimeDimension = index.dimension((d) => { return d.fields.response_time[0]/1000; });
-    const responseTimeGroup = responseTimeDimension.group();
+    const binwidth = 100;
+    const minResponseTime = d3.min(items, function(d) { return d.fields.response_time[0]; });
+    const maxResponseTime = d3.max(items, function(d) { return d.fields.response_time[0]; });
+    const responseTimeDimension = index.dimension((d) => { return d.fields.response_time[0]; });
+
+    const responseTimeGroup = responseTimeDimension.group((d) => {
+      return binwidth * Math.floor(d / binwidth);
+    });
 
     const all = index.groupAll();
 
@@ -114,40 +134,47 @@ Template.dashboard.onCreated(function () {
 
     const timeScaleForLine = d3.time.scale().domain([minDate, maxDate]);
     const timeScaleForFocus = d3.time.scale().domain([minDate, maxDate]);
+    const xScaleForBar = d3.scale.pow().domain([minResponseTime, 1000]);
 
     return {
-      timeStampDimension    : timeStampDimension,
-      timeStampGroup        : timeStampGroup,
-      statusCodeDimension   : statusCodeDimension,
-      statusCodeGroup       : statusCodeGroup,
-      responseTimeDimension : responseTimeDimension,
-      responseTimeGroup     : responseTimeGroup,
-      timeScaleForLine      : timeScaleForLine,
-      timeScaleForFocus     : timeScaleForFocus,
+      timeStampDimension,
+      timeStampGroup,
+      statusCodeDimension,
+      statusCodeGroup,
+      responseTimeDimension,
+      responseTimeGroup,
+      timeScaleForLine,
+      timeScaleForFocus,
+      xScaleForBar,
+      binwidth
     };
   }
 
   instance.renderCharts = function (parsedData) {
 
-    const timeStampDimension    = parsedData.timeStampDimension;
-    const timeStampGroup        = parsedData.timeStampGroup;
-    const statusCodeDimension   = parsedData.statusCodeDimension;
-    const statusCodeGroup       = parsedData.statusCodeGroup;
-    const responseTimeDimension = parsedData.responseTimeDimension;
-    const responseTimeGroup     = parsedData.responseTimeGroup;
-    const timeScaleForLine      = parsedData.timeScaleForLine;
-    const timeScaleForFocus     = parsedData.timeScaleForFocus;
+    const {
+      timeStampDimension,
+      timeStampGroup,
+      statusCodeDimension,
+      statusCodeGroup,
+      responseTimeDimension,
+      responseTimeGroup,
+      timeScaleForLine,
+      timeScaleForFocus,
+      xScaleForBar,
+      binwidth
+    } = parsedData;
 
     const line = dc.lineChart('#line-chart');
     const focus = dc.barChart('#focus-chart');
     const row = dc.rowChart('#row-chart');
-    const line2 = dc.lineChart('#line2-chart');
+    const bar = dc.barChart('#bar-chart');
 
     line
       .height(350)
       .renderArea(true)
-      .transitionDuration(500)
-      .margins({top: 5, right: 10, bottom: 25, left: 40})
+      .transitionDuration(300)
+      .margins({top: 5, right: 20, bottom: 25, left: 40})
       .x(timeScaleForLine)
       .dimension(timeStampDimension)
       .group(timeStampGroup)
@@ -161,9 +188,10 @@ Template.dashboard.onCreated(function () {
       .height(100)
       .dimension(timeStampDimension)
       .group(timeStampGroup)
+      .xUnits(dc.units.fp.precision(binwidth))
       .centerBar(true)
       .gap(1)
-      .margins({top: 5, right: 10, bottom: 25, left: 40})
+      .margins({top: 5, right: 20, bottom: 25, left: 40})
       .x(timeScaleForFocus)
       .alwaysUseRounding(true)
       .elasticY(true)
@@ -171,25 +199,31 @@ Template.dashboard.onCreated(function () {
 
     row
       .height(215)
+      .transitionDuration(300)
       .dimension(statusCodeDimension)
       .group(statusCodeGroup)
       .elasticX(true)
       .xAxis().ticks(5);
 
-    line2
+    bar
       .height(215)
-      .transitionDuration(500)
-      .x(timeScaleForLine)
+      .transitionDuration(300)
       .dimension(responseTimeDimension)
       .group(responseTimeGroup)
-      .brushOn(false)
-      .xAxis().ticks(4)
-      // .elasticY(true);
+      .centerBar(true)
+      .xUnits(dc.units.fp.precision(binwidth))
+      .margins({top: 5, right: 20, bottom: 25, left: 45})
+      .brushOn(true)
+      .x(xScaleForBar)
+      .renderHorizontalGridLines(true)
+      .xAxis().ticks(10);
 
     dc.renderAll();
 
-    for (var i = 0; i < dc.chartRegistry.list().length; i++) {
-      var chartI = dc.chartRegistry.list()[i];
+    for (let i = 0; i < dc.chartRegistry.list().length; i++) {
+
+      const chartI = dc.chartRegistry.list()[i];
+
       chartI.on("filtered", () => {
 
         instance.updateDataTable(timeStampDimension);
@@ -222,7 +256,7 @@ Template.dashboard.onCreated(function () {
       try { time = moment(e.fields.request_at[0]).format("D/MM/YYYY HH:mm:ss"); }
       catch (e) { time = ''; }
 
-      try { country = e.fields.request_ip_country[0] }
+      try { country = e.fields.request_ip_country[0]; }
       catch (e) { country = ''; }
 
       try { requestPath = e.fields.request_path[0]; }
@@ -251,13 +285,14 @@ Template.dashboard.onCreated(function () {
       line.x(timeScaleForLine);
     }
   }
+
 });
 
 Template.dashboard.onRendered(function () {
 
   const instance = this;
 
-  const chartElemets = $('#line-chart, #focus-chart, #row-chart, #line2-chart');
+  const chartElemets = $('#line-chart, #focus-chart, #row-chart, #bar-chart');
 
   chartElemets.addClass('loader');
 
@@ -267,14 +302,11 @@ Template.dashboard.onRendered(function () {
 
     if (chartData) {
 
-      console.log(chartData)
-
       const parsedData = instance.parseChartData(chartData);
 
       instance.renderCharts(parsedData);
 
       chartElemets.removeClass('loader');
-
     }
   });
 });
@@ -283,5 +315,12 @@ Template.dashboard.helpers({
   tableDataSet () {
     const instance = Template.instance();
     return instance.tableDataSet.get();
+  },
+  itemsCount () {
+    const instance = Template.instance();
+    return {
+      filterItemsCount: instance.filterItemsCount.get(),
+      totalItemsCount: instance.totalItemsCount.get()
+    }
   }
 })

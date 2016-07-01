@@ -59,5 +59,15 @@ Template.dataTable.helpers({
     const dataSetLength = Template.currentData().tableDataSet.length;
 
     return pageNumber < (dataSetLength / rowCount - 1);
+  },
+  currentPageNumber () {
+    const instance = Template.instance();
+
+    return instance.pageNumber.get();
+  },
+  totalPageNumber () {
+    const instance = Template.instance();
+
+    return (Template.currentData().tableDataSet.length / instance.rowCount.get()) | 0;
   }
 })

@@ -9,7 +9,7 @@
     "d3": "^3.5.17",
     "dc": "^2.0.0-beta.30",
     "elasticsearch": "^11.0.1",
-    "meteor-node-stubs": "~0.2.0",
+    "meteor-node-stubs": "^0.2.3",
     "moment": "^2.13.0"
   },
   "description": "Example dashboard layout for apinf.",

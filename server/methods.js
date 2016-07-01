@@ -4,24 +4,10 @@ import { esClient } from '/server/elasticsearch';
 
 import async from 'async';
 
-import { Analytics } from '/both/collections/analytics';
 import _ from 'lodash';
 
 Meteor.methods({
-  getElasticSearchData (params) {
-
-    let opts = {
-      index: params.index,
-      type: params.type,
-      size: params.size,
-      body: {
-        query: params.query
-      }
-    };
-
-    if (params.fields && params.fields.length != 0) {
-      opts.body.fields = params.fields;
-    }
+  getElasticSearchData (opts) {
 
     const start = new Date().getTime();
 
@@ -70,7 +56,15 @@ Meteor.methods({
 
           if (!itemExists) {
             try {
-              Analytics.insert(item);
+              Analytics.insert({
+                _id: item._id,
+                request_at: item._source.request_at,
+                request_ip_country: item._source.request_ip_country,
+                request_path: item._source.request_path,
+                request_ip: item._source.request_ip,
+                response_time: item._source.response_time,
+                response_status: item._source.response_status
+              });
             } catch (err) {
               console.log(err);
             }
@@ -90,5 +84,29 @@ Meteor.methods({
     }
 
     console.log('Sync complete.');
+  },
+  getAggr () {
+
+    esClient.search({
+      index: 'api-umbrella-logs-v1-2016-06',
+      type: 'log',
+      "size" : 0,
+      "aggs": {
+        "response_time": {
+          "date_histogram": {
+            "field": "response_time",
+            "interval": "month",
+            "format": "yyyy-MM-dd",
+            "min_doc_count" : 0,
+            "extended_bounds" : {
+              "min" : "2014-01-01",
+              "max" : "2014-12-31"
+            }
+          }
+        }
+      }
+    }).then((res) => {
+      console.log(res);
+    })
   }
 })
