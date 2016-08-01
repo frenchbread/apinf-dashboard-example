@@ -18,95 +18,22 @@ Meteor.methods({
       return res;
     });
   },
-  async syncElasticSearchData () {
-
-    let syncComplete = false;
-    let fromItem = 0;
-    let size = 10000;
-
-    console.log('Sync started.');
-
-    while (syncComplete === false) {
-
-      const params = {
-        index: 'api-umbrella-logs-v1-2016-06',
-        type: 'log',
-        from: fromItem,
-        size: size,
-        query: {
-          match_all: {}
-        }
-      };
-
-      const items = await esClient.search(params).then((res) => {
-
-        return res.hits.hits;
-      }, (err) => {
-
-        throw new Meteor.error(err);
-      });
-
-      if (items.length > 0) {
-
-        _.forEach(items, (item) => {
-
-          // console.log('inserting')
-
-          const itemExists = Analytics.findOne({ _id: item._id });
-
-          if (!itemExists) {
-            try {
-              Analytics.insert({
-                _id: item._id,
-                request_at: item._source.request_at,
-                request_ip_country: item._source.request_ip_country,
-                request_path: item._source.request_path,
-                request_ip: item._source.request_ip,
-                response_time: item._source.response_time,
-                response_status: item._source.response_status
-              });
-            } catch (err) {
-              console.log(err);
-            }
-            // console.log('Ok!');
-          } else {
-            // console.log('Passed!');
-          }
-          // console.log(item);
-        });
-
-        console.log('10k done! -----------------------');
-
-        fromItem += size;
-      } else {
-        syncComplete = true;
-      }
-    }
-
-    console.log('Sync complete.');
-  },
   getAggr () {
 
-    esClient.search({
-      index: 'api-umbrella-logs-v1-2016-06',
-      type: 'log',
-      "size" : 0,
-      "aggs": {
-        "response_time": {
-          "date_histogram": {
-            "field": "response_time",
-            "interval": "month",
-            "format": "yyyy-MM-dd",
-            "min_doc_count" : 0,
-            "extended_bounds" : {
-              "min" : "2014-01-01",
-              "max" : "2014-12-31"
-            }
-          }
-        }
-      }
-    }).then((res) => {
-      console.log(res);
-    })
+    // esClient.search({
+    //   size : 0,
+    //   "aggregations": {
+    //     "the_name": {
+    //       "terms": {
+    //         "field": "response_status",
+    //         "order": {
+    //           "rating_avg": "desc"
+    //         }
+    //       }
+    //     }
+    //   }
+    // }).then((res) => {
+    //   console.log(res);
+    // })
   }
 })
