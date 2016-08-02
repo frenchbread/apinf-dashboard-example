@@ -20,20 +20,18 @@ Meteor.methods({
   },
   getAggr () {
 
-    // esClient.search({
-    //   size : 0,
-    //   "aggregations": {
-    //     "the_name": {
-    //       "terms": {
-    //         "field": "response_status",
-    //         "order": {
-    //           "rating_avg": "desc"
-    //         }
-    //       }
-    //     }
-    //   }
-    // }).then((res) => {
-    //   console.log(res);
-    // })
+    return esClient.search({
+      "index": "api-umbrella-logs-v1-2016-08",
+      "size": 100,
+      "aggs" : {
+        "request_per_day" : {
+            "stats" : {
+                "field" : "request_ip"
+            }
+        }
+    }
+    }).then((res) => {
+      return res;
+    });
   }
-})
+});
