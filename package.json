@@ -5,8 +5,6 @@
     "start": "meteor run"
   },
   "dependencies": {
-    "d3": "^3.5.17",
-    "dc": "^2.0.0-beta.30",
     "elasticsearch": "^11.0.1",
     "lodash": "^4.14.1",
     "meteor-node-stubs": "^0.2.3",
