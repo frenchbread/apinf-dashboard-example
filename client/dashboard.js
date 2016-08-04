@@ -29,48 +29,48 @@ Template.dashboard.onCreated(function(){
   instance.getAnalyticsDrilldown()
     .then((data) => {
 
-      let cols = [];
-      _.forEach(data.hits_over_time.cols, (col) => {
-        cols.push(col.label);
+    let cols = [];
+    _.forEach(data.hits_over_time.cols, (col) => {
+      cols.push(col.label);
+    });
+
+    let rows = [];
+    _.forEach(data.hits_over_time.rows, (row) => {
+      let cc = [];
+      _.forEach(row.c, (c) => {
+        cc.push(c.f);
       });
+      rows.push(cc);
+    });
 
-      let rows = [];
-      _.forEach(data.hits_over_time.rows, (row) => {
-        let cc = [];
-        _.forEach(row.c, (c) => {
-          cc.push(c.f);
-        });
-        rows.push(cc);
-      });
+    console.log(data);
 
-      console.log(data);
+    let dataSet = [];
+    for (let i = 1; i < data.hits_over_time.cols.length; i++) {
 
-      let dataSet = [];
-      for (let i = 1; i < data.hits_over_time.cols.length; i++) {
+      let obj = {
+        "key": '',
+        "values": []
+      };
 
-        let obj = {
-          "key": '',
-          "values": []
-        };
+      obj.key = data.hits_over_time.cols[i].label;
 
-        obj.key = data.hits_over_time.cols[i].label;
+      for (let day = 0; day < data.hits_over_time.rows.length; day++) {
 
-        for (let day = 0; day < data.hits_over_time.rows.length; day++) {
-
-          obj.values.push([data.hits_over_time.rows[day].c[0].f, data.hits_over_time.rows[day].c[i].v]);
-        }
-        dataSet.push(obj)
+        obj.values.push([data.hits_over_time.rows[day].c[0].v, data.hits_over_time.rows[day].c[i].v]);
       }
+      dataSet.push(obj)
+    }
 
-      console.log(dataSet);
-      instance.dataSet.set(dataSet);
+    console.log(dataSet);
+    instance.dataSet.set(dataSet);
 
-      instance.cols.set(cols);
-      instance.rows.set(rows);
-    })
+    instance.cols.set(cols);
+    instance.rows.set(rows);
+  })
     .catch((err) => {
-      console.error(err);
-    })
+    console.error(err);
+  })
 });
 
 Template.dashboard.onRendered(function(){
@@ -83,26 +83,24 @@ Template.dashboard.onRendered(function(){
     if (data) {
 
       nv.addGraph(function() {
+        var chart = nv.models.stackedAreaChart()
+        .margin({right: 100})
+        .height(600)
+        .x(function(d) { return d[0] })   //We can modify the data accessor functions...
+        .y(function(d) { return d[1] })   //...in case your data is formatted differently.
+        .useInteractiveGuideline(true)    //Tooltips which show all data points. Very nice!
+        .rightAlignYAxis(true)      //Let's move the y-axis to the right side.
+        .showControls(true)       //Allow user to choose 'Stacked', 'Stream', 'Expanded' mode.
+        .clipEdge(true);
 
-        var chart = nv.models.lineChart()
-          .options({
-            duration: 300,
-            useInteractiveGuideline: true
-          });
-        // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+        //Format x-axis labels with custom function.
         chart.xAxis
-          .axisLabel("Time (s)")
-          .tickFormat(d3.format(',.1f'))
-          .staggerLabels(true);
+          .tickFormat(function(d) {
+          return d3.time.format('%x')(new Date(d))
+        });
 
         chart.yAxis
-          .axisLabel('Voltage (v)')
-          .tickFormat(function(d) {
-            if (d == null) {
-              return 'N/A';
-            }
-            return d3.format(',.2f')(d);
-          });
+          .tickFormat(d3.format(',.2f'));
 
         d3.select('#chart')
           .datum(data)
