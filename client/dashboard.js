@@ -85,31 +85,31 @@ Template.dashboard.onRendered(function(){
       nv.addGraph(function() {
 
         var chart = nv.models.lineChart()
-        .options({
-          duration: 300,
-          useInteractiveGuideline: true
-        });
+          .options({
+            duration: 300,
+            useInteractiveGuideline: true
+          });
         // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
         chart.xAxis
-        .axisLabel("Time (s)")
-        .tickFormat(d3.format(',.1f'))
-        .staggerLabels(true);
+          .axisLabel("Time (s)")
+          .tickFormat(d3.format(',.1f'))
+          .staggerLabels(true);
 
         chart.yAxis
-        .axisLabel('Voltage (v)')
-        .tickFormat(function(d) {
-          if (d == null) {
-            return 'N/A';
-          }
-          return d3.format(',.2f')(d);
-        });
+          .axisLabel('Voltage (v)')
+          .tickFormat(function(d) {
+            if (d == null) {
+              return 'N/A';
+            }
+            return d3.format(',.2f')(d);
+          });
 
         d3.select('#chart')
-        .datum(data)
-        .call(chart);
+          .datum(data)
+          .call(chart);
 
         nv.utils.windowResize(chart.update);
-        
+
         return chart;
       });
     }
