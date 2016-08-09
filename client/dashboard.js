@@ -5,7 +5,7 @@ import _ from 'lodash';
 import config from '/config';
 
 import d3 from 'd3';
-// import nvd3 from 'nvd3';
+import nvd3 from 'nvd3';
 
 Template.dashboard.onCreated(function(){
 
