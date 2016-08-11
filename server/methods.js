@@ -1,112 +1,24 @@
 import { Meteor } from 'meteor/meteor';
-
-import { esClient } from '/server/elasticsearch';
-
-import async from 'async';
-
-import _ from 'lodash';
+import config from '/config';
 
 Meteor.methods({
-  getElasticSearchData (opts) {
+  async getAnalyticsDrilldown () {
 
-    const start = new Date().getTime();
+    const url = `${config.host}/v1/analytics/drilldown?interval=day&start_at=2016-01-01&end_at=2016-08-03&prefix=0%2F`;
 
-    return esClient.search(opts).then((res) => {
+    return await new Promise((resolve, reject) => {
 
-      console.log((new Date().getTime() - start) / 1000 );
-
-      return res;
-    });
-  },
-  async syncElasticSearchData () {
-
-    let syncComplete = false;
-    let fromItem = 0;
-    let size = 10000;
-
-    console.log('Sync started.');
-
-    while (syncComplete === false) {
-
-      const params = {
-        index: 'api-umbrella-logs-v1-2016-06',
-        type: 'log',
-        from: fromItem,
-        size: size,
-        query: {
-          match_all: {}
-        }
-      };
-
-      const items = await esClient.search(params).then((res) => {
-
-        return res.hits.hits;
-      }, (err) => {
-
-        throw new Meteor.error(err);
+      Meteor.http.get(url, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-Admin-Auth-Token': config.token,
+          'X-Api-Key': config.key
+       }
+      }, (err, res) => {
+        if (err) reject(err);
+        resolve(res.data);
       });
-
-      if (items.length > 0) {
-
-        _.forEach(items, (item) => {
-
-          // console.log('inserting')
-
-          const itemExists = Analytics.findOne({ _id: item._id });
-
-          if (!itemExists) {
-            try {
-              Analytics.insert({
-                _id: item._id,
-                request_at: item._source.request_at,
-                request_ip_country: item._source.request_ip_country,
-                request_path: item._source.request_path,
-                request_ip: item._source.request_ip,
-                response_time: item._source.response_time,
-                response_status: item._source.response_status
-              });
-            } catch (err) {
-              console.log(err);
-            }
-            // console.log('Ok!');
-          } else {
-            // console.log('Passed!');
-          }
-          // console.log(item);
-        });
-
-        console.log('10k done! -----------------------');
-
-        fromItem += size;
-      } else {
-        syncComplete = true;
-      }
-    }
-
-    console.log('Sync complete.');
-  },
-  getAggr () {
-
-    esClient.search({
-      index: 'api-umbrella-logs-v1-2016-06',
-      type: 'log',
-      "size" : 0,
-      "aggs": {
-        "response_time": {
-          "date_histogram": {
-            "field": "response_time",
-            "interval": "month",
-            "format": "yyyy-MM-dd",
-            "min_doc_count" : 0,
-            "extended_bounds" : {
-              "min" : "2014-01-01",
-              "max" : "2014-12-31"
-            }
-          }
-        }
-      }
-    }).then((res) => {
-      console.log(res);
-    })
+    });
   }
-})
+});
