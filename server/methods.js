@@ -1,8 +1,7 @@
 import { Meteor } from 'meteor/meteor';
-import { esClient } from '/server/elasticsearch';
 import config from '/config';
 
-Meteor.methods(
+Meteor.methods({
   async getAnalyticsDrilldown () {
 
     const url = `${config.host}/v1/analytics/drilldown?interval=day&start_at=2016-01-01&end_at=2016-08-03&prefix=0%2F`;
