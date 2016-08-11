@@ -8,7 +8,7 @@
 
   ```
   export default {
-    host: '<host>',
+    host: '<api_umbrella_host>',
     key: '<api_key>',
     token: '<api_token>'
   }
