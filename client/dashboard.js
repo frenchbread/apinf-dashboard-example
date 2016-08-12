@@ -23,29 +23,32 @@ Template.dashboard.onCreated(function(){
     });
   }
 
-  instance.getAnalyticsDrilldown()
-    .then((data) => {
+  instance.parseDataForNvd3 = function (data) {
 
-      let dataSet = [];
+    let dataSet = [];
 
-      for (let i = 1; i < data.hits_over_time.cols.length; i++) {
+    for (let i = 1; i < data.hits_over_time.cols.length; i++) {
 
-        let obj = {
-          "key": '',
-          "values": []
-        };
+      let obj = {
+        "key": '',
+        "values": []
+      };
 
-        obj.key = data.hits_over_time.cols[i].label;
+      obj.key = data.hits_over_time.cols[i].label;
 
-        for (let day = 0; day < data.hits_over_time.rows.length; day++) {
+      for (let day = 0; day < data.hits_over_time.rows.length; day++) {
 
-          obj.values.push([data.hits_over_time.rows[day].c[0].v, data.hits_over_time.rows[day].c[i].v]);
-        }
-        dataSet.push(obj)
+        obj.values.push([data.hits_over_time.rows[day].c[0].v, data.hits_over_time.rows[day].c[i].v]);
       }
+      dataSet.push(obj)
+    }
 
-      instance.dataSet.set(dataSet);
-    })
+    return dataSet;
+  }
+
+  instance.getAnalyticsDrilldown()
+    .then(data => instance.parseDataForNvd3(data))
+    .then(dataSet => instance.dataSet.set(dataSet))
     .catch((err) => {
       console.error(err);
     });
