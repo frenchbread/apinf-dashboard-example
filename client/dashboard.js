@@ -11,9 +11,6 @@ Template.dashboard.onCreated(function(){
 
   const instance = this;
 
-  instance.cols = new ReactiveVar();
-  instance.rows = new ReactiveVar();
-
   instance.dataSet = new ReactiveVar();
 
   instance.getAnalyticsDrilldown = async function () {
@@ -29,48 +26,29 @@ Template.dashboard.onCreated(function(){
   instance.getAnalyticsDrilldown()
     .then((data) => {
 
-    let cols = [];
-    _.forEach(data.hits_over_time.cols, (col) => {
-      cols.push(col.label);
-    });
+      let dataSet = [];
 
-    let rows = [];
-    _.forEach(data.hits_over_time.rows, (row) => {
-      let cc = [];
-      _.forEach(row.c, (c) => {
-        cc.push(c.f);
-      });
-      rows.push(cc);
-    });
+      for (let i = 1; i < data.hits_over_time.cols.length; i++) {
 
-    console.log(data);
+        let obj = {
+          "key": '',
+          "values": []
+        };
 
-    let dataSet = [];
-    for (let i = 1; i < data.hits_over_time.cols.length; i++) {
+        obj.key = data.hits_over_time.cols[i].label;
 
-      let obj = {
-        "key": '',
-        "values": []
-      };
+        for (let day = 0; day < data.hits_over_time.rows.length; day++) {
 
-      obj.key = data.hits_over_time.cols[i].label;
-
-      for (let day = 0; day < data.hits_over_time.rows.length; day++) {
-
-        obj.values.push([data.hits_over_time.rows[day].c[0].v, data.hits_over_time.rows[day].c[i].v]);
+          obj.values.push([data.hits_over_time.rows[day].c[0].v, data.hits_over_time.rows[day].c[i].v]);
+        }
+        dataSet.push(obj)
       }
-      dataSet.push(obj)
-    }
 
-    console.log(dataSet);
-    instance.dataSet.set(dataSet);
-
-    instance.cols.set(cols);
-    instance.rows.set(rows);
-  })
+      instance.dataSet.set(dataSet);
+    })
     .catch((err) => {
-    console.error(err);
-  })
+      console.error(err);
+    });
 });
 
 Template.dashboard.onRendered(function(){
@@ -112,15 +90,4 @@ Template.dashboard.onRendered(function(){
       });
     }
   });
-});
-
-Template.dashboard.helpers({
-  cols () {
-    const instance = Template.instance();
-    return instance.cols.get();
-  },
-  rows () {
-    const instance = Template.instance();
-    return instance.rows.get();
-  }
 });
